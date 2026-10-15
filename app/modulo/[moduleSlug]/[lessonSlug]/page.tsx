@@ -14,9 +14,11 @@ import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  Clock,
   HelpCircle,
   Lightbulb,
   Loader2,
+  Sparkles,
 } from 'lucide-react';
 
 function LessonContent() {
@@ -24,13 +26,13 @@ function LessonContent() {
   const moduleSlug = params?.moduleSlug as string;
   const lessonSlug = params?.lessonSlug as string;
 
-  // Localiza o módulo
+  // Localiza o módulo atual
   const currentModule = COURSE_MODULES.find((m) => m.slug === moduleSlug);
   if (!currentModule) {
     notFound();
   }
 
-  // Localiza o índice da lição atual
+  // Localiza a lição atual
   const currentLessonIndex = currentModule.lessons.findIndex(
     (l) => l.slug === lessonSlug
   );
@@ -46,33 +48,28 @@ function LessonContent() {
       ? currentModule.lessons[currentLessonIndex + 1]
       : null;
 
-  // 1. Extração flexível do texto teórico
-  const rawContent =
-    lesson.content ??
-    lesson.theory ??
-    lesson.explanation ??
-    lesson.body ??
-    lesson.text ??
-    (typeof lesson.description === 'string' && lesson.description !== lesson.subtitle
-      ? lesson.description
-      : null);
+  // Extração das secções teóricas estruturadas (theoryContent)
+  const theorySections: Array<{ heading?: string; title?: string; body?: string; content?: string }> =
+    Array.isArray(lesson.theoryContent)
+      ? lesson.theoryContent
+      : Array.isArray(lesson.sections)
+      ? lesson.sections
+      : [];
 
-  // 2. Normalização em parágrafos (suporta array, quebras \n\n ou \n)
-  let contentParagraphs: string[] = [];
-  if (Array.isArray(rawContent)) {
-    contentParagraphs = rawContent.map((p) => String(p).trim()).filter(Boolean);
-  } else if (typeof rawContent === 'string' && rawContent.trim().length > 0) {
-    const normalized = rawContent.replace(/\r\n/g, '\n').trim();
-    if (normalized.includes('\n\n')) {
-      contentParagraphs = normalized.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
-    } else if (normalized.includes('\n')) {
-      contentParagraphs = normalized.split(/\n+/).map((p) => p.trim()).filter(Boolean);
-    } else {
-      contentParagraphs = [normalized];
-    }
-  }
+  // Extração do resumo de conceitos (conceptSummary)
+  const conceptSummary: string[] = Array.isArray(lesson.conceptSummary)
+    ? lesson.conceptSummary
+    : [];
 
-  // 3. Extração dos dados do braço (fretboard)
+  // Suporte adicional caso alguma lição possua texto simples legado (content/theory/description)
+  const legacyContent =
+    typeof lesson.content === 'string'
+      ? lesson.content
+      : typeof lesson.theory === 'string'
+      ? lesson.theory
+      : null;
+
+  // Marcadores do braço do instrumento (fretboard)
   const markers = lesson.markers || lesson.fretboardMarkers || [];
   const startFret = lesson.fretboardStartFret ?? lesson.startFret ?? 0;
   const endFret = lesson.fretboardEndFret ?? lesson.endFret ?? 12;
@@ -95,15 +92,23 @@ function LessonContent() {
         </nav>
 
         {/* Cabeçalho da Lição */}
-        <header className="space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase font-bold">
+        <header className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase font-bold">
               Etapa {currentModule.number} • {currentModule.level}
             </span>
+            {lesson.readingTime && (
+              <span className="inline-flex items-center gap-1 text-xs font-mono text-neutral-400 px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800">
+                <Clock className="w-3 h-3 text-neutral-500" />
+                {lesson.readingTime}
+              </span>
+            )}
           </div>
+
           <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
             {lesson.title}
           </h1>
+
           {lesson.subtitle && (
             <p className="text-sm md:text-base text-neutral-400 leading-relaxed">
               {lesson.subtitle}
@@ -111,7 +116,25 @@ function LessonContent() {
           )}
         </header>
 
-        {/* Braço do Instrumento & Player de Áudio (só renderiza se houver notas) */}
+        {/* Resumo de Conceitos-Chave (conceptSummary) */}
+        {conceptSummary.length > 0 && (
+          <section className="p-6 rounded-3xl bg-amber-500/5 border border-amber-500/20 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>Conceitos Essenciais</span>
+            </div>
+            <ul className="space-y-2 text-xs md:text-sm text-neutral-300 leading-relaxed">
+              {conceptSummary.map((concept, idx) => (
+                <li key={idx} className="flex items-start gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0" />
+                  <span>{concept}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Braço do Instrumento & Player de Áudio */}
         {markers.length > 0 && (
           <section className="bg-neutral-900/80 p-6 rounded-3xl border border-neutral-800 space-y-4 shadow-lg">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
@@ -153,32 +176,56 @@ function LessonContent() {
           </section>
         )}
 
-        {/* Conteúdo Teórico Explicativo (só renderiza se existirem parágrafos) */}
-        {contentParagraphs.length > 0 && (
-          <section className="space-y-6 text-neutral-300 text-sm md:text-base leading-relaxed bg-neutral-900/40 p-6 md:p-8 rounded-3xl border border-neutral-800/80">
-            <div className="prose prose-invert max-w-none space-y-4">
-              {contentParagraphs.map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
-            </div>
-
-            {/* Dicas Práticas de Aplicação */}
-            {lesson.tips && lesson.tips.length > 0 && (
-              <div className="mt-6 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400 uppercase">
-                  <Lightbulb className="w-4 h-4" /> Dica de Prática
-                </div>
-                <ul className="list-disc list-inside text-xs md:text-sm text-neutral-300 space-y-1">
-                  {lesson.tips.map((tip: string, idx: number) => (
-                    <li key={idx}>{tip}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+        {/* Conteúdo Teórico Estruturado (theoryContent) */}
+        {theorySections.length > 0 && (
+          <section className="space-y-6">
+            {theorySections.map((sec, index) => {
+              const heading = sec.heading || sec.title;
+              const body = sec.body || sec.content;
+              return (
+                <article
+                  key={index}
+                  className="bg-neutral-900/40 p-6 md:p-8 rounded-3xl border border-neutral-800/80 space-y-3"
+                >
+                  {heading && (
+                    <h3 className="text-lg md:text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                      <span className="text-amber-500 font-mono text-sm">#</span>
+                      {heading}
+                    </h3>
+                  )}
+                  {body && (
+                    <p className="text-sm md:text-base text-neutral-300 leading-relaxed">
+                      {body}
+                    </p>
+                  )}
+                </article>
+              );
+            })}
           </section>
         )}
 
-        {/* Sessão de Exercícios Práticos (Quiz com Ganho de XP) */}
+        {/* Suporte a Conteúdo de Texto Legado */}
+        {legacyContent && theorySections.length === 0 && (
+          <section className="bg-neutral-900/40 p-6 md:p-8 rounded-3xl border border-neutral-800/80 space-y-4 text-sm md:text-base text-neutral-300 leading-relaxed">
+            <p>{legacyContent}</p>
+          </section>
+        )}
+
+        {/* Dicas Práticas Adicionais */}
+        {lesson.tips && lesson.tips.length > 0 && (
+          <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400 uppercase">
+              <Lightbulb className="w-4 h-4" /> Dica de Prática
+            </div>
+            <ul className="list-disc list-inside text-xs md:text-sm text-neutral-300 space-y-1">
+              {lesson.tips.map((tip: string, idx: number) => (
+                <li key={idx}>{tip}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Exercícios Práticos (Quiz com Ganho de XP) */}
         {lesson.quiz && lesson.quiz.length > 0 && (
           <section className="space-y-4">
             <div className="flex items-center gap-2 text-sm font-bold text-white uppercase tracking-wider font-mono">
@@ -189,7 +236,7 @@ function LessonContent() {
           </section>
         )}
 
-        {/* Rodapé de Navegação */}
+        {/* Navegação Inferior */}
         <footer className="pt-6 border-t border-neutral-800 flex items-center justify-between gap-4">
           {prevLesson ? (
             <Link

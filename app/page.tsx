@@ -95,7 +95,7 @@ export default function HomePage() {
           </div>
           <div className="w-full h-2.5 bg-neutral-800 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-500"
+              className="h-full bg-linear-to-r from-amber-500 to-amber-300 transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
             />
           </div>

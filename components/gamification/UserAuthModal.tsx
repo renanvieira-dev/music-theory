@@ -319,7 +319,7 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({ isOpen, onClose })
           <div className="space-y-6">
             <div className="flex items-center justify-between pb-6 border-b border-neutral-800">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 text-neutral-950 flex items-center justify-center font-black text-xl shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-linear-to-tr from-amber-500 to-amber-300 text-neutral-950 flex items-center justify-center font-black text-xl shadow-md">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -366,7 +366,7 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({ isOpen, onClose })
               </div>
               <div className="w-full h-2 bg-neutral-950 rounded-full overflow-hidden border border-neutral-800">
                 <div
-                  className="h-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-500"
+                  className="h-full bg-linear-to-r from-amber-500 to-amber-300 transition-all duration-500"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>

@@ -24,7 +24,7 @@ export const Fretboard: React.FC<FretboardProps> = ({
 
   return (
     <div className="w-full overflow-x-auto py-2">
-      <div className="min-w-[620px] bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-inner select-none">
+      <div className="min-w-155 bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-inner select-none">
         {/* Cabeçalho de Casas */}
         <div className="grid grid-cols-[48px_repeat(auto-fit,minmax(38px,1fr))] mb-2 text-center text-xs font-mono text-neutral-500">
           <div className="text-neutral-600 font-bold">Corda</div>

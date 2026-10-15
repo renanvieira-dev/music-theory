@@ -341,7 +341,7 @@ export default function EarTrainingPage() {
         <div className="flex flex-col items-center justify-center space-y-3">
           <button
             onClick={() => playChallengeAudio(currentChallenge, rootMidi, playbackStyle)}
-            className="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 text-neutral-950 flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg shadow-amber-500/20"
+            className="w-20 h-20 rounded-full bg-linear-to-tr from-amber-500 to-amber-300 text-neutral-950 flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg shadow-amber-500/20"
             title="Ouvir novamente"
           >
             <Volume2 className="w-8 h-8" />

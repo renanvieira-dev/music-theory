@@ -17,6 +17,11 @@ import {
   Ear,
   User,
   Trophy,
+  Flame,
+  Zap,
+  Lock,
+  PlayCircle,
+  GraduationCap,
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -32,6 +37,12 @@ export default function HomePage() {
   const progressPercent = Math.round((completedLessons.length / totalLessons) * 100);
   const unlockedTrophies = achievements.filter((a) => a.unlockedAt !== null).length;
 
+  // Próxima lição sugerida para o aluno continuar
+  const allLessons = COURSE_MODULES.flatMap((m) =>
+    m.lessons.map((l) => ({ ...l, moduleSlug: m.slug, moduleTitle: m.title }))
+  );
+  const nextLesson = allLessons.find((l) => !completedLessons.includes(l.id)) || allLessons[0];
+
   const getLevelBadge = (level: CourseLevel) => {
     switch (level) {
       case 'iniciante':
@@ -44,180 +55,312 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6 md:p-12 max-w-5xl mx-auto">
-      {/* Modal de Login e Conquistas */}
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col">
+      {/* Modal de Autenticação & Troféus */}
       <UserAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
 
-      {/* Header com Perfil do Aluno */}
-      <header className="mb-10 space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-mono text-amber-500 uppercase tracking-widest flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5" /> Plataforma de Harmonia Funcional
-          </span>
+      {/* Topbar da Plataforma */}
+      <header className="border-b border-neutral-800/80 bg-neutral-950/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <GraduationCap className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="font-extrabold text-sm tracking-tight text-white block">
+                Harmonia Prática
+              </span>
+              <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider block">
+                Portal do Aluno
+              </span>
+            </div>
+          </div>
 
-          {/* Botão de Perfil / Conquistas */}
-          <button
-            onClick={() => setIsAuthModalOpen(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono border transition-all bg-neutral-900 border-neutral-800 hover:border-amber-500/60 text-neutral-200"
-          >
+          {/* Estado de Login no Cabeçalho */}
+          <div className="flex items-center gap-3">
             {user ? (
-              <>
-                <div className="w-4 h-4 rounded-full bg-amber-400 text-neutral-950 flex items-center justify-center font-bold text-[10px]">
-                  {user.name.charAt(0).toUpperCase()}
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="flex items-center gap-3 px-3 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 hover:border-amber-500/50 transition"
+              >
+                <div className="flex items-center gap-1.5 text-xs font-mono text-amber-400">
+                  <Zap className="w-3.5 h-3.5 fill-amber-400" />
+                  <span>{user.xp} XP</span>
                 </div>
-                <span>{user.name}</span>
-                <span className="text-amber-400 font-bold flex items-center gap-1 ml-1">
-                  <Trophy className="w-3 h-3" /> {unlockedTrophies}
-                </span>
-              </>
+                <div className="h-3 w-px bg-neutral-800" />
+                <div className="flex items-center gap-1.5 text-xs text-neutral-300">
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 text-neutral-950 flex items-center justify-center font-bold text-[10px]">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="font-medium hidden sm:inline">{user.name}</span>
+                </div>
+              </button>
             ) : (
-              <>
-                <User className="w-3.5 h-3.5 text-neutral-400" />
-                <span>Entrar / Ver Conquistas</span>
-              </>
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 transition shadow-sm"
+              >
+                <User className="w-3.5 h-3.5" /> Entrar / Registar
+              </button>
             )}
-          </button>
-        </div>
-
-        <h1 className="text-4xl font-extrabold tracking-tight text-white">
-          Harmonia Prática no Violão & Guitarra
-        </h1>
-        <p className="text-sm text-neutral-400 max-w-2xl leading-relaxed">
-          Domine teoria musical, formação de acordes, campo harmónico e cadências com aplicação
-          direta na geometria das cordas e áudio de violão real.
-        </p>
-
-        {/* Card de Progresso Global */}
-        <div className="mt-6 p-5 bg-neutral-900 border border-neutral-800 rounded-2xl flex flex-col gap-2.5">
-          <div className="flex justify-between items-center text-xs font-semibold">
-            <span className="text-neutral-300">Progresso Global das Lições</span>
-            <span className="text-amber-400 font-mono">{progressPercent}% Concluído</span>
           </div>
-          <div className="w-full h-2.5 bg-neutral-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-linear-to-r from-amber-500 to-amber-300 transition-all duration-500"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Ferramentas e Laboratórios Interativos */}
-        <div className="pt-4 flex flex-wrap items-center gap-3">
-          <Link
-            href="/dicionario"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-neutral-800 text-amber-400 border border-neutral-800 hover:border-amber-500/50 transition-all shadow-sm"
-          >
-            <BookOpen className="w-4 h-4" />
-            Dicionário de Escalas & Acordes (Vol. 4)
-          </Link>
-
-          <Link
-            href="/praticador"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-neutral-800 text-sky-400 border border-neutral-800 hover:border-sky-500/50 transition-all shadow-sm"
-          >
-            <Timer className="w-4 h-4" />
-            Cadências, Metrónomo & Estação de Improviso
-          </Link>
-
-          <Link
-            href="/percepcao"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-neutral-800 text-purple-400 border border-neutral-800 hover:border-purple-500/50 transition-all shadow-sm"
-          >
-            <Ear className="w-4 h-4" />
-            Treinador de Percepção (Ear Training)
-          </Link>
         </div>
       </header>
 
-      {/* Filtros por Nível */}
-      <section className="mb-8 flex items-center gap-2 overflow-x-auto pb-2">
-        <div className="flex items-center gap-1.5 text-xs text-neutral-500 mr-2 font-mono">
-          <Compass className="w-4 h-4" /> Nível:
-        </div>
-        {[
-          { id: 'todos', label: 'Todos os Módulos' },
-          { id: 'iniciante', label: 'Iniciante' },
-          { id: 'intermediario', label: 'Intermediário' },
-          { id: 'avancado', label: 'Avançado' },
-        ].map((tab) => {
-          const active = selectedLevel === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setSelectedLevel(tab.id as 'todos' | CourseLevel)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                active
-                  ? 'bg-amber-500 text-neutral-950 border-amber-400 shadow-sm'
-                  : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:border-neutral-700 hover:text-neutral-200'
-              }`}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </section>
+      {/* Conteúdo Principal */}
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 space-y-10">
+        {/* Banner de Boas-Vindas & Cockpit do Aluno */}
+        <section className="p-8 rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-900/90 to-neutral-950 border border-neutral-800 shadow-xl relative overflow-hidden">
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+            <div className="lg:col-span-2 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-widest font-bold">
+                  {user ? `Nível: ${user.levelTitle}` : 'Ambiente de Estudos'}
+                </span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                {user ? `Pronto para tocar, ${user.name}?` : 'Harmonia Aplicada ao Braço do Instrumento'}
+              </h1>
+              <p className="text-sm text-neutral-400 max-w-2xl leading-relaxed">
+                Domina formação de acordes, voicings modernos (Drop 2/3), campo harmónico funcional e percepção de intervalos de ouvido.
+              </p>
 
-      {/* Lista de Módulos */}
-      <div className="space-y-8">
-        {filteredModules.map((module) => (
-          <div
-            key={module.id}
-            className="p-6 rounded-2xl bg-neutral-900/80 border border-neutral-800 shadow-lg"
-          >
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-mono text-amber-400 uppercase font-bold">
-                    Etapa {module.number}
-                  </span>
-                  <span
-                    className={`text-[10px] font-mono px-2 py-0.5 rounded-full border uppercase tracking-wider ${getLevelBadge(
-                      module.level
-                    )}`}
+              {/* Botão de Ação Rápida */}
+              <div className="pt-2">
+                {user ? (
+                  <Link
+                    href={`/modulo/${nextLesson.moduleSlug}/${nextLesson.slug}`}
+                    className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold uppercase tracking-wider transition shadow-lg shadow-amber-500/10"
                   >
-                    {module.level}
-                  </span>
-                </div>
-                <h2 className="text-xl font-bold text-white">{module.title}</h2>
-                <p className="text-xs text-neutral-400 mt-1 max-w-3xl leading-relaxed">
-                  {module.description}
-                </p>
+                    <PlayCircle className="w-4 h-4" /> Continuar Aula: {nextLesson.title}
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold uppercase tracking-wider transition shadow-lg shadow-amber-500/10"
+                  >
+                    <Sparkles className="w-4 h-4" /> Criar Conta para Começar
+                  </button>
+                )}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 mt-4">
-              {module.lessons.map((lesson) => {
-                const isDone = completedLessons.includes(lesson.id);
+            {/* Caixa de Métricas do Aluno */}
+            <div className="p-6 bg-neutral-950/80 rounded-2xl border border-neutral-800/80 space-y-4">
+              <div className="flex justify-between items-center text-xs font-semibold">
+                <span className="text-neutral-300">Conclusão do Currículo</span>
+                <span className="text-amber-400 font-mono">{progressPercent}%</span>
+              </div>
+              <div className="w-full h-2.5 bg-neutral-900 rounded-full overflow-hidden border border-neutral-800">
+                <div
+                  className="h-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-500"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
 
+              <div className="grid grid-cols-2 gap-3 pt-2 text-center">
+                <div className="p-3 bg-neutral-900/60 rounded-xl border border-neutral-800/60">
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase block">Lições</span>
+                  <span className="text-base font-black text-white font-mono">
+                    {completedLessons.length}/{totalLessons}
+                  </span>
+                </div>
+                <div className="p-3 bg-neutral-900/60 rounded-xl border border-neutral-800/60">
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase block">Troféus</span>
+                  <span className="text-base font-black text-amber-400 font-mono">
+                    {unlockedTrophies}/{achievements.length}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Laboratórios Interativos de Prática */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400" /> Ferramentas & Prática Livre
+            </h2>
+            <span className="text-xs text-neutral-500 font-mono">Acesso Aberto</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link
+              href="/dicionario"
+              className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 hover:border-amber-500/40 transition group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-bold text-white group-hover:text-amber-400 transition">
+                Dicionário de Voicings (Vol. 4)
+              </h3>
+              <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                Mapas de escalas completas e posições anatómicas fechadas (Drop 2 e Drop 3).
+              </p>
+            </Link>
+
+            <Link
+              href="/praticador"
+              className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 hover:border-sky-500/40 transition group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center mb-3">
+                <Timer className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-bold text-white group-hover:text-sky-400 transition">
+                Estação de Improviso & Metrónomo
+              </h3>
+              <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                Backing tracks automáticos de cadências com reprodução de violão e escala guia no braço.
+              </p>
+            </Link>
+
+            <Link
+              href="/percepcao"
+              className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 hover:border-purple-500/40 transition group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-3">
+                <Ear className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-bold text-white group-hover:text-purple-400 transition">
+                Treinador de Percepção (Ear Training)
+              </h3>
+              <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                Identifica intervalos harmónicos, tríades e tétrades de ouvido com sistema de pontuação.
+              </p>
+            </Link>
+          </div>
+        </section>
+
+        {/* Trilha Curricular com Filtros */}
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-neutral-800">
+            <div>
+              <h2 className="text-xl font-extrabold text-white">Trilha de Aulas</h2>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                Conteúdo sequencial com testes práticos ao final de cada módulo.
+              </p>
+            </div>
+
+            {/* Filtros por Nível */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              {[
+                { id: 'todos', label: 'Todos' },
+                { id: 'iniciante', label: 'Iniciante' },
+                { id: 'intermediario', label: 'Intermédio' },
+                { id: 'avancado', label: 'Avançado' },
+              ].map((tab) => {
+                const active = selectedLevel === tab.id;
                 return (
-                  <Link
-                    key={lesson.id}
-                    href={`/modulo/${module.slug}/${lesson.slug}`}
-                    className="flex items-center justify-between p-4 rounded-xl bg-neutral-950/70 border border-neutral-800/80 hover:border-amber-500/50 transition-all group"
+                  <button
+                    key={tab.id}
+                    onClick={() => setSelectedLevel(tab.id as 'todos' | CourseLevel)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                      active
+                        ? 'bg-amber-500 text-neutral-950 border-amber-400 shadow-sm'
+                        : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-neutral-200'
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
-                      {isDone ? (
-                        <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-                      ) : (
-                        <BookOpen className="w-5 h-5 text-neutral-500 group-hover:text-amber-400 shrink-0 transition" />
-                      )}
-                      <div>
-                        <h3 className="text-sm font-semibold text-neutral-200 group-hover:text-white transition">
-                          {lesson.title}
-                        </h3>
-                        <p className="text-xs text-neutral-400 mt-0.5 line-clamp-1">
-                          {lesson.subtitle}
-                        </p>
-                      </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-neutral-600 group-hover:text-amber-400 shrink-0 transition" />
-                  </Link>
+                    {tab.label}
+                  </button>
                 );
               })}
             </div>
           </div>
-        ))}
-      </div>
-    </main>
+
+          {/* Módulos do Curso */}
+          <div className="space-y-6">
+            {filteredModules.map((module) => {
+              const moduleLessonsDone = module.lessons.filter((l) =>
+                completedLessons.includes(l.id)
+              ).length;
+              const isModuleComplete =
+                moduleLessonsDone === module.lessons.length && module.lessons.length > 0;
+
+              return (
+                <div
+                  key={module.id}
+                  className="rounded-3xl bg-neutral-900/60 border border-neutral-800 overflow-hidden shadow-sm"
+                >
+                  {/* Cabeçalho do Módulo */}
+                  <div className="p-6 border-b border-neutral-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-neutral-900/80">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-xs font-mono font-bold text-amber-400 uppercase">
+                          Módulo {module.number}
+                        </span>
+                        <span
+                          className={`text-[10px] font-mono px-2 py-0.5 rounded-full border uppercase tracking-wider ${getLevelBadge(
+                            module.level
+                          )}`}
+                        >
+                          {module.level}
+                        </span>
+                        {isModuleComplete && (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" /> Concluído
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-lg font-bold text-white">{module.title}</h3>
+                      <p className="text-xs text-neutral-400 mt-1 max-w-3xl leading-relaxed">
+                        {module.description}
+                      </p>
+                    </div>
+
+                    <div className="text-xs font-mono text-neutral-500 shrink-0">
+                      Progresso: {moduleLessonsDone}/{module.lessons.length}
+                    </div>
+                  </div>
+
+                  {/* Lista de Aulas do Módulo */}
+                  <div className="divide-y divide-neutral-800/60">
+                    {module.lessons.map((lesson) => {
+                      const isDone = completedLessons.includes(lesson.id);
+
+                      return (
+                        <Link
+                          key={lesson.id}
+                          href={`/modulo/${module.slug}/${lesson.slug}`}
+                          className="flex items-center justify-between p-4 px-6 hover:bg-neutral-800/40 transition group"
+                        >
+                          <div className="flex items-center gap-4">
+                            {isDone ? (
+                              <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                            ) : !user ? (
+                              <Lock className="w-4 h-4 text-neutral-600 shrink-0 group-hover:text-amber-400 transition" />
+                            ) : (
+                              <PlayCircle className="w-5 h-5 text-neutral-500 group-hover:text-amber-400 shrink-0 transition" />
+                            )}
+                            <div>
+                              <h4 className="text-sm font-semibold text-neutral-200 group-hover:text-white transition">
+                                {lesson.title}
+                              </h4>
+                              <p className="text-xs text-neutral-500 mt-0.5 line-clamp-1">
+                                {lesson.subtitle}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {!user && (
+                              <span className="text-[10px] font-mono text-neutral-500 hidden sm:inline">
+                                Bloqueado (Login)
+                              </span>
+                            )}
+                            <ArrowRight className="w-4 h-4 text-neutral-600 group-hover:text-amber-400 shrink-0 transition" />
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }

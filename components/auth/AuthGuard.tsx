@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useStudyProgress } from '@/store/useStudyProgress';
 import { UserAuthModal } from '@/components/gamification/UserAuthModal';
-import { Lock, ArrowLeft, Sparkles, LogIn, GraduationCap } from 'lucide-react';
+import { Lock, ArrowLeft, LogIn, GraduationCap } from 'lucide-react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -15,22 +15,22 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const { user } = useStudyProgress();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Se o aluno estiver logado, renderiza o conteúdo da aula normalmente
   if (user) {
     return <>{children}</>;
   }
 
-  // Se não estiver logado, bloqueia a tela e convida ao login
   return (
     <>
       <UserAuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
-      <div className="min-h-[80vh] flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-neutral-900 border border-neutral-800 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden">
-          {/* Efeito luminoso de fundo */}
+      {/* Contentor com altura total do ecrã e alinhamento centrado perfeito */}
+      <div className="fixed inset-0 z-30 min-h-screen w-full flex items-center justify-center p-4 bg-neutral-950 overflow-y-auto">
+        <div className="max-w-md w-full bg-neutral-900 border border-neutral-800 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden my-auto">
+          {/* Efeitos subtis de iluminação */}
           <div className="absolute -top-16 -left-16 w-36 h-36 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-16 -right-16 w-36 h-36 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
+          {/* Ícone */}
           <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-6 shadow-inner">
             <Lock className="w-8 h-8" />
           </div>

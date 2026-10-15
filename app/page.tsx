@@ -1,4 +1,3 @@
-// app/page.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -6,22 +5,19 @@ import Link from 'next/link';
 import { COURSE_MODULES } from '@/data/modules';
 import { useStudyProgress } from '@/store/useStudyProgress';
 import { UserAuthModal } from '@/components/gamification/UserAuthModal';
+import { Logo } from '@/components/ui/Logo';
 import { CourseLevel } from '@/types/course';
 import {
   BookOpen,
   CheckCircle,
   ArrowRight,
   Sparkles,
-  Compass,
   Timer,
   Ear,
   User,
-  Trophy,
-  Flame,
   Zap,
   Lock,
   PlayCircle,
-  GraduationCap,
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -37,7 +33,6 @@ export default function HomePage() {
   const progressPercent = Math.round((completedLessons.length / totalLessons) * 100);
   const unlockedTrophies = achievements.filter((a) => a.unlockedAt !== null).length;
 
-  // Próxima lição sugerida para o aluno continuar
   const allLessons = COURSE_MODULES.flatMap((m) =>
     m.lessons.map((l) => ({ ...l, moduleSlug: m.slug, moduleTitle: m.title }))
   );
@@ -56,27 +51,15 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col">
-      {/* Modal de Autenticação & Troféus */}
       <UserAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
 
-      {/* Topbar da Plataforma */}
+      {/* Topbar Harmonix */}
       <header className="border-b border-neutral-800/80 bg-neutral-950/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-              <GraduationCap className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="font-extrabold text-sm tracking-tight text-white block">
-                Harmonia Prática
-              </span>
-              <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider block">
-                Portal do Aluno
-              </span>
-            </div>
-          </div>
+          <Link href="/" className="hover:opacity-90 transition">
+            <Logo size="md" showTagline={true} />
+          </Link>
 
-          {/* Estado de Login no Cabeçalho */}
           <div className="flex items-center gap-3">
             {user ? (
               <button
@@ -107,9 +90,8 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
+      {/* Cockpit do Aluno */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 space-y-10">
-        {/* Banner de Boas-Vindas & Cockpit do Aluno */}
         <section className="p-8 rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-900/90 to-neutral-950 border border-neutral-800 shadow-xl relative overflow-hidden">
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
             <div className="lg:col-span-2 space-y-3">
@@ -125,7 +107,6 @@ export default function HomePage() {
                 Domina formação de acordes, voicings modernos (Drop 2/3), campo harmónico funcional e percepção de intervalos de ouvido.
               </p>
 
-              {/* Botão de Ação Rápida */}
               <div className="pt-2">
                 {user ? (
                   <Link
@@ -145,7 +126,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Caixa de Métricas do Aluno */}
             <div className="p-6 bg-neutral-950/80 rounded-2xl border border-neutral-800/80 space-y-4">
               <div className="flex justify-between items-center text-xs font-semibold">
                 <span className="text-neutral-300">Conclusão do Currículo</span>
@@ -176,7 +156,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Laboratórios Interativos de Prática */}
+        {/* Ferramentas e Laboratórios de Prática */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -212,7 +192,7 @@ export default function HomePage() {
                 Estação de Improviso & Metrónomo
               </h3>
               <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                Backing tracks automáticos de cadências com reprodução de violão e escala guia no braço.
+                Backing tracks automáticos de cadências com reprodução e escala guia no braço.
               </p>
             </Link>
 
@@ -233,7 +213,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Trilha Curricular com Filtros */}
+        {/* Trilha Curricular */}
         <section className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-neutral-800">
             <div>
@@ -243,7 +223,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Filtros por Nível */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
               {[
                 { id: 'todos', label: 'Todos' },
@@ -269,7 +248,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Módulos do Curso */}
           <div className="space-y-6">
             {filteredModules.map((module) => {
               const moduleLessonsDone = module.lessons.filter((l) =>
@@ -283,7 +261,6 @@ export default function HomePage() {
                   key={module.id}
                   className="rounded-3xl bg-neutral-900/60 border border-neutral-800 overflow-hidden shadow-sm"
                 >
-                  {/* Cabeçalho do Módulo */}
                   <div className="p-6 border-b border-neutral-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-neutral-900/80">
                     <div>
                       <div className="flex items-center gap-2 mb-1.5">
@@ -314,7 +291,6 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  {/* Lista de Aulas do Módulo */}
                   <div className="divide-y divide-neutral-800/60">
                     {module.lessons.map((lesson) => {
                       const isDone = completedLessons.includes(lesson.id);

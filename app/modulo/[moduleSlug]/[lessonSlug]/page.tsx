@@ -24,7 +24,6 @@ function LessonContent() {
   const moduleSlug = params?.moduleSlug as string;
   const lessonSlug = params?.lessonSlug as string;
 
-  // Localiza o módulo e a lição atual
   const currentModule = COURSE_MODULES.find((m) => m.slug === moduleSlug);
   if (!currentModule) {
     notFound();
@@ -45,7 +44,6 @@ function LessonContent() {
       ? currentModule.lessons[currentLessonIndex + 1]
       : null;
 
-  // Suporte flexível para array ou texto formatado com parágrafos
   const contentParagraphs: string[] = Array.isArray(lesson.content)
     ? lesson.content
     : typeof lesson.content === 'string'
@@ -59,7 +57,6 @@ function LessonContent() {
   return (
     <AuthGuard>
       <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6 md:p-12 max-w-4xl mx-auto space-y-10">
-        {/* Navegação Superior */}
         <nav className="flex items-center justify-between text-xs font-mono text-neutral-400 pb-4 border-b border-neutral-800">
           <Link
             href="/"
@@ -73,7 +70,6 @@ function LessonContent() {
           </span>
         </nav>
 
-        {/* Cabeçalho da Lição */}
         <header className="space-y-3">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase">
@@ -90,7 +86,6 @@ function LessonContent() {
           )}
         </header>
 
-        {/* Braço do Instrumento & Player de Áudio */}
         {markers.length > 0 && (
           <section className="bg-neutral-900/80 p-6 rounded-3xl border border-neutral-800 space-y-4 shadow-lg">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
@@ -108,7 +103,6 @@ function LessonContent() {
               endFret={endFret}
             />
 
-            {/* Legenda de Notas */}
             <div className="pt-2 flex flex-wrap items-center gap-2 text-xs text-neutral-400 font-mono">
               <span className="text-neutral-500">Notas em destaque:</span>
               {markers
@@ -129,7 +123,6 @@ function LessonContent() {
           </section>
         )}
 
-        {/* Conteúdo Teórico */}
         <section className="space-y-6 text-neutral-300 text-sm md:text-base leading-relaxed bg-neutral-900/40 p-6 md:p-8 rounded-3xl border border-neutral-800/80">
           <div className="prose prose-invert max-w-none space-y-4">
             {contentParagraphs.map((paragraph, index) => (
@@ -137,7 +130,6 @@ function LessonContent() {
             ))}
           </div>
 
-          {/* Dicas Práticas */}
           {lesson.tips && lesson.tips.length > 0 && (
             <div className="mt-6 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-2">
               <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400 uppercase">
@@ -152,7 +144,6 @@ function LessonContent() {
           )}
         </section>
 
-        {/* Quiz com Ganho de XP */}
         {lesson.quiz && lesson.quiz.length > 0 && (
           <section className="space-y-4">
             <div className="flex items-center gap-2 text-sm font-bold text-white uppercase tracking-wider font-mono">
@@ -163,7 +154,6 @@ function LessonContent() {
           </section>
         )}
 
-        {/* Rodapé de Navegação */}
         <footer className="pt-6 border-t border-neutral-800 flex items-center justify-between gap-4">
           {prevLesson ? (
             <Link
@@ -200,7 +190,6 @@ function LessonContent() {
   );
 }
 
-// O componente de página principal envolve o conteúdo em <Suspense> para o prerender estático passar no Next.js
 export default function LessonPage() {
   return (
     <Suspense

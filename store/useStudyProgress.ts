@@ -1,169 +1,191 @@
 // store/useStudyProgress.ts
-'use client';
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { UserProfile, Achievement, INITIAL_ACHIEVEMENTS } from '@/types/gamification';
-import { supabase } from '@/lib/supabase';
 
-interface StudyProgressStore {
+export interface UserProfile {
+  name: string;
+  email: string;
+  xp: number;
+  levelTitle: string;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon?: string;
+  xpReward?: number;
+  unlockedAt: string | null;
+}
+
+const DEFAULT_ACHIEVEMENTS: Achievement[] = [
+  {
+    id: 'ach-first-lesson',
+    title: 'Primeira Digitação',
+    description: 'Concluiu a primeira aula na plataforma Harmonix.',
+    xpReward: 50,
+    unlockedAt: null,
+  },
+  {
+    id: 'ach-module-1',
+    title: 'Geometria Inicial',
+    description: 'Dominou o Módulo 1 de Intervalos e Formação no Braço.',
+    xpReward: 100,
+    unlockedAt: null,
+  },
+  {
+    id: 'ach-perfect-quiz',
+    title: 'Ouvido de Ouro',
+    description: 'Acertou todas as perguntas de um teste de fixação de primeira.',
+    xpReward: 75,
+    unlockedAt: null,
+  },
+  {
+    id: 'ach-voicings-drop',
+    title: 'Arquiteto de Acordes',
+    description: 'Completou os estudos de voicings anatômicos Drop 2 e Drop 3.',
+    xpReward: 150,
+    unlockedAt: null,
+  },
+  {
+    id: 'ach-ear-training',
+    title: 'Mestre da Percepção',
+    description: 'Alcançou 10 acertos consecutivos no laboratório de percepção.',
+    xpReward: 100,
+    unlockedAt: null,
+  },
+  {
+    id: 'ach-xp-500',
+    title: 'Improvisador Experiente',
+    description: 'Acumulou mais de 500 XP em lições e desafios.',
+    xpReward: 200,
+    unlockedAt: null,
+  },
+];
+
+interface StudyProgressState {
   user: UserProfile | null;
   completedLessons: string[];
   achievements: Achievement[];
+  newlyUnlockedAchievement: Achievement | null;
 
-  setUserProfile: (profile: UserProfile | null) => void;
-  syncWithSupabase: (userId: string) => Promise<void>;
-  markLessonComplete: (lessonId: string) => void;
-  addXP: (amount: number) => void;
+  // Actions
+  setUser: (user: UserProfile | null) => void;
+  addXp: (amount: number) => void;
+  completeLesson: (lessonId: string) => void;
   unlockAchievement: (achievementId: string) => void;
-  resetAllProgress: () => Promise<void>;
-  logout: () => Promise<void>;
+  clearUnlockedAchievement: () => void;
+  resetProgress: () => void;
 }
 
-const getLevelTitle = (xp: number): string => {
-  if (xp < 100) return 'Iniciante Curioso';
-  if (xp < 300) return 'Praticante de Escalas';
-  if (xp < 600) return 'Harmonizador Popular';
-  if (xp < 1000) return 'Mestre das Cadências';
-  return 'Arranjador Virtuoso';
+const calculateLevel = (xp: number): string => {
+  if (xp >= 1500) return 'Mestre da Harmonia';
+  if (xp >= 800) return 'Arranjador Avançado';
+  if (xp >= 400) return 'Músico Prático';
+  if (xp >= 150) return 'Estudante Intermediário';
+  return 'Iniciante Curioso';
 };
 
-export const useStudyProgress = create<StudyProgressStore>()(
+export const useStudyProgress = create<StudyProgressState>()(
   persist(
     (set, get) => ({
       user: null,
       completedLessons: [],
-      achievements: INITIAL_ACHIEVEMENTS,
+      achievements: DEFAULT_ACHIEVEMENTS,
+      newlyUnlockedAchievement: null,
 
-      setUserProfile: (profile) => set({ user: profile }),
+      setUser: (user) => set({ user }),
 
-      syncWithSupabase: async (userId: string) => {
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .single();
+      addXp: (amount) => {
+        const currentUser = get().user;
+        if (!currentUser) return;
 
-          if (data && !error) {
-            set({
-              user: {
-                name: data.name,
-                email: data.email,
-                xp: data.xp || 0,
-                levelTitle: data.level_title || getLevelTitle(data.xp || 0),
-                createdAt: data.created_at,
-              },
-              completedLessons: data.completed_lessons || [],
-              achievements: data.achievements && data.achievements.length > 0 ? data.achievements : INITIAL_ACHIEVEMENTS,
-            });
-          }
-        } catch (err) {
-          console.error('Erro ao sincronizar dados do Supabase:', err);
-        }
-      },
+        const newXp = currentUser.xp + amount;
+        const newLevel = calculateLevel(newXp);
 
-      markLessonComplete: async (lessonId: string) => {
-        const { completedLessons, unlockAchievement, addXP, user } = get();
-        if (completedLessons.includes(lessonId)) return;
-
-        const updated = [...completedLessons, lessonId];
-        set({ completedLessons: updated });
-        addXP(30);
-
-        if (updated.length === 1) {
-          unlockAchievement('first-lesson');
-        }
-
-        // Salva na nuvem se autenticado
-        const { data: authData } = await supabase.auth.getUser();
-        if (authData?.user) {
-          await supabase
-            .from('profiles')
-            .update({ completed_lessons: updated })
-            .eq('id', authData.user.id);
-        }
-      },
-
-      addXP: async (amount: number) => {
-        const { user } = get();
-        if (!user) return;
-
-        const newXP = user.xp + amount;
-        const newTitle = getLevelTitle(newXP);
         set({
           user: {
-            ...user,
-            xp: newXP,
-            levelTitle: newTitle,
+            ...currentUser,
+            xp: newXp,
+            levelTitle: newLevel,
           },
         });
 
-        const { data: authData } = await supabase.auth.getUser();
-        if (authData?.user) {
-          await supabase
-            .from('profiles')
-            .update({ xp: newXP, level_title: newTitle })
-            .eq('id', authData.user.id);
+        // Checagem automática do troféu de 500 XP
+        if (newXp >= 500) {
+          get().unlockAchievement('ach-xp-500');
         }
       },
 
-      unlockAchievement: async (achievementId: string) => {
-        const { achievements, addXP } = get();
-        const target = achievements.find((a) => a.id === achievementId);
-        if (!target || target.unlockedAt) return;
+      completeLesson: (lessonId) => {
+        const { completedLessons } = get();
+        if (completedLessons.includes(lessonId)) return;
 
-        const updated = achievements.map((a) =>
-          a.id === achievementId ? { ...a, unlockedAt: new Date().toISOString() } : a
+        const updatedLessons = [...completedLessons, lessonId];
+        set({ completedLessons: updatedLessons });
+
+        // Adiciona XP pela lição
+        get().addXp(40);
+
+        // Primeiro Troféu: Primeira Aula Concluída
+        if (updatedLessons.length === 1) {
+          get().unlockAchievement('ach-first-lesson');
+        }
+      },
+
+      unlockAchievement: (achievementId) => {
+        const { achievements } = get();
+        const target = achievements.find((a) => a.id === achievementId);
+
+        // Se não existir ou já estiver desbloqueado, ignora
+        if (!target || target.unlockedAt !== null) return;
+
+        const now = new Date().toISOString();
+        const updatedTarget: Achievement = {
+          ...target,
+          unlockedAt: now,
+        };
+
+        const updatedList = achievements.map((a) =>
+          a.id === achievementId ? updatedTarget : a
         );
 
-        set({ achievements: updated });
-        addXP(target.xpReward);
-
-        const { data: authData } = await supabase.auth.getUser();
-        if (authData?.user) {
-          await supabase
-            .from('profiles')
-            .update({ achievements: updated })
-            .eq('id', authData.user.id);
+        // Bônus de XP do próprio troféu
+        if (target.xpReward) {
+          const currentUser = get().user;
+          if (currentUser) {
+            const newXp = currentUser.xp + target.xpReward;
+            set({
+              user: {
+                ...currentUser,
+                xp: newXp,
+                levelTitle: calculateLevel(newXp),
+              },
+            });
+          }
         }
+
+        // Ativa o Pop-up na tela!
+        set({
+          achievements: updatedList,
+          newlyUnlockedAchievement: updatedTarget,
+        });
       },
 
-      resetAllProgress: async () => {
-        const { user } = get();
+      clearUnlockedAchievement: () => {
+        set({ newlyUnlockedAchievement: null });
+      },
+
+      resetProgress: () => {
         set({
           completedLessons: [],
-          achievements: INITIAL_ACHIEVEMENTS,
-          user: user
-            ? {
-                ...user,
-                xp: 0,
-                levelTitle: getLevelTitle(0),
-              }
-            : null,
+          achievements: DEFAULT_ACHIEVEMENTS,
+          newlyUnlockedAchievement: null,
         });
-
-        const { data: authData } = await supabase.auth.getUser();
-        if (authData?.user) {
-          await supabase
-            .from('profiles')
-            .update({
-              completed_lessons: [],
-              achievements: INITIAL_ACHIEVEMENTS,
-              xp: 0,
-              level_title: 'Iniciante Curioso',
-            })
-            .eq('id', authData.user.id);
-        }
-      },
-
-      logout: async () => {
-        await supabase.auth.signOut();
-        set({ user: null, completedLessons: [], achievements: INITIAL_ACHIEVEMENTS });
       },
     }),
     {
-      name: 'harmony-study-progress-v2',
+      name: 'harmonix-study-storage',
     }
   )
 );

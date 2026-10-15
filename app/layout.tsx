@@ -1,3 +1,4 @@
+// app/layout.tsx
 import type { Metadata } from 'next';
 import './globals.css';
 
@@ -5,6 +6,9 @@ export const metadata: Metadata = {
   title: 'Harmonix — Teoria, Geometria & Percepção',
   description:
     'Plataforma interativa de teoria musical aplicada ao braço do instrumento: condução de vozes, Drop 2/3, campo harmónico e treino auditivo.',
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export default function RootLayout({

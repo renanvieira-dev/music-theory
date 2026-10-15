@@ -7,7 +7,14 @@ export const metadata: Metadata = {
   description:
     'Plataforma interativa de teoria musical aplicada ao braço do instrumento: condução de vozes, Drop 2/3, campo harmónico e treino auditivo.',
   icons: {
-    icon: '/icon.svg',
+    icon: [
+      {
+        url: '/favicon.png',
+        type: 'image/png',
+      },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
   },
 };
 

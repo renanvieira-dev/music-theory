@@ -1,7 +1,7 @@
 // app/modulo/[moduleSlug]/[lessonSlug]/page.tsx
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { COURSE_MODULES } from '@/data/modules';
@@ -16,12 +16,13 @@ import {
   CheckCircle2,
   HelpCircle,
   Lightbulb,
+  Loader2,
 } from 'lucide-react';
 
-export default function LessonPage() {
+function LessonContent() {
   const params = useParams();
-  const moduleSlug = params.moduleSlug as string;
-  const lessonSlug = params.lessonSlug as string;
+  const moduleSlug = params?.moduleSlug as string;
+  const lessonSlug = params?.lessonSlug as string;
 
   // Localiza o módulo e a lição atual
   const currentModule = COURSE_MODULES.find((m) => m.slug === moduleSlug);
@@ -44,14 +45,13 @@ export default function LessonPage() {
       ? currentModule.lessons[currentLessonIndex + 1]
       : null;
 
-  // Suporte flexível tanto para array quanto para string única com quebras de linha
+  // Suporte flexível para array ou texto formatado com parágrafos
   const contentParagraphs: string[] = Array.isArray(lesson.content)
     ? lesson.content
     : typeof lesson.content === 'string'
     ? lesson.content.split('\n\n').filter((p: string) => p.trim().length > 0)
     : [];
 
-  // Suporte para qualquer nome usado na interface (markers ou fretboardMarkers)
   const markers = lesson.markers || lesson.fretboardMarkers || [];
   const startFret = lesson.fretboardStartFret ?? lesson.startFret ?? 0;
   const endFret = lesson.fretboardEndFret ?? lesson.endFret ?? 12;
@@ -197,5 +197,21 @@ export default function LessonPage() {
         </footer>
       </main>
     </AuthGuard>
+  );
+}
+
+// O componente de página principal envolve o conteúdo em <Suspense> para o prerender estático passar no Next.js
+export default function LessonPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center text-neutral-400 font-mono text-xs gap-3">
+          <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
+          <span>A carregar lição...</span>
+        </div>
+      }
+    >
+      <LessonContent />
+    </Suspense>
   );
 }
